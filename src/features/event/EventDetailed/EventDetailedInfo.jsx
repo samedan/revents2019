@@ -1,5 +1,4 @@
 // rafc
-
 import React from 'react';
 import { Segment, Grid, Icon, Button } from 'semantic-ui-react';
 

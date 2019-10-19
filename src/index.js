@@ -6,15 +6,16 @@ import * as serviceWorker from './serviceWorker';
 import App from './app/layout/App';
 import { BrowserRouter } from 'react-router-dom';
 import { configureStore } from './app/store/configureStore';
+import ScrollToTop from './app/common/util/scrollToTop';
 
 const store = configureStore();
-
-console.log(store.getState());
 
 ReactDOM.render(
   <Provider store={store}>
     <BrowserRouter>
-      <App />
+      <ScrollToTop>
+        <App />
+      </ScrollToTop>
     </BrowserRouter>
   </Provider>,
   document.getElementById('root')
