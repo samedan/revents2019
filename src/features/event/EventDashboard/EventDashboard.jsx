@@ -4,6 +4,7 @@ import EventList from '../EventList/EventList';
 import EventForm from '../EventForm/EventForm';
 import cuid from 'cuid';
 import { connect } from 'react-redux';
+import { createEvent, deleteEvent, updateEvent } from '../eventActions';
 
 class EventDashboard extends Component {
   state = {
@@ -34,9 +35,8 @@ class EventDashboard extends Component {
   handleCreateEvent = newEvent => {
     newEvent.id = cuid();
     newEvent.hostPhotoURL = '/assets/user.png';
+    this.props.createEvent(newEvent);
     this.setState(({ events }) => ({
-      // ({events}) are destructurized from 'prevState', not 'state'
-      events: [...events, newEvent],
       isOpen: false
     }));
   };
@@ -49,28 +49,15 @@ class EventDashboard extends Component {
   };
 
   handleUpdateEvent = updatedEvent => {
+    this.props.updateEvent(updatedEvent);
     this.setState(({ events }) => ({
-      // previousState events
-      events: events.map(event =>
-        // check if the 'updatedEvent' exists already in 'state'
-        {
-          if (event.id === updatedEvent.id) {
-            // will replace the old 'event with same id with the 'updatedEvent' props
-            return { ...updatedEvent };
-          } else {
-            return event;
-          }
-        }
-      ),
       isOpen: false,
       selectedEvent: null
     }));
   };
 
   handleDeleteEvent = id => {
-    this.setState(({ events }) => ({
-      events: events.filter(e => e.id !== id)
-    }));
+    this.props.deleteEvent(id);
   };
 
   render() {
@@ -111,4 +98,13 @@ const mapStateToProps = state => ({
   events: state.events
 });
 
-export default connect(mapStateToProps)(EventDashboard);
+const mapDispatchToProps = {
+  createEvent,
+  updateEvent,
+  deleteEvent
+};
+
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(EventDashboard);
