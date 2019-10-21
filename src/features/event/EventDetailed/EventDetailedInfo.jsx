@@ -1,8 +1,11 @@
 // rafc
-import React from 'react';
+import React, { useState } from 'react';
 import { Segment, Grid, Icon, Button } from 'semantic-ui-react';
+import EventDetailedMap from './EventDetailedMap';
 
 const EventDetailedInfo = ({ event }) => {
+  const [isMapOpen, showMapToggle] = useState(false);
+
   return (
     <Segment.Group>
       <Segment attached="top">
@@ -34,10 +37,21 @@ const EventDetailedInfo = ({ event }) => {
             <span>{event.venue}</span>
           </Grid.Column>
           <Grid.Column width={4}>
-            <Button color="teal" size="tiny" content="Show Map" />
+            <Button
+              onClick={() => showMapToggle(!isMapOpen)}
+              color="teal"
+              size="tiny"
+              content={isMapOpen ? 'Hide map' : 'Show map'}
+            />
           </Grid.Column>
         </Grid>
       </Segment>
+      {isMapOpen && (
+        <EventDetailedMap
+          lat={event.venueLatLng.lat}
+          lng={event.venueLatLng.lng}
+        />
+      )}
     </Segment.Group>
   );
 };
