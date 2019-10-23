@@ -5,7 +5,7 @@ import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 
 const DateInput = ({
-  input,
+  input: { value, onChange, onBlur },
   width,
   placeholder,
   meta: { touched, error },
@@ -16,9 +16,17 @@ const DateInput = ({
       <DatePicker
         {...rest}
         placeholderText={placeholder}
-        selected={input.value ? new Date(input.value) : null}
-        onChange={input.onChange}
-        onBlur={input.onBlur}
+        selected={
+          value
+            ? // check to see if a date is Date or a firestore timestamp
+              Object.prototype.toString.call(value) !== '[object Date]'
+              ? value.toDate()
+              : value
+            : null
+        }
+        onChange={onChange}
+        // val is 'date' as a 'Date'
+        onBlur={(e, val) => onBlur(val)}
         // when user types into field
         onChangeRaw={e => e.preventDefault()}
       />
