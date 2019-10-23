@@ -1,11 +1,11 @@
 import React, { Component, Fragment } from 'react';
 import { connect } from 'react-redux';
+import { withFirebase } from 'react-redux-firebase';
 import { Menu, Container, Button } from 'semantic-ui-react';
 import { Link, NavLink, withRouter } from 'react-router-dom';
 import SignedOutMenu from '../Menus/SignedOutMenu';
 import SignedInMenu from '../Menus/SignedInMenu';
 import { openModal } from '../../modals/modalActions';
-import { logout } from '../../auth/authActions';
 
 class NavBar extends Component {
   handleSignIn = () => {
@@ -15,13 +15,13 @@ class NavBar extends Component {
     this.props.openModal('RegisterModal');
   };
   handleSignOut = () => {
-    this.props.logout();
+    this.props.firebase.logout();
     this.props.history.push('/');
   };
 
   render() {
-    const { auth } = this.props;
-    const authenticated = auth.authenticated;
+    const { auth, profile } = this.props;
+    const authenticated = auth.isLoaded && !auth.isEmpty;
     return (
       <Menu inverted fixed="top">
         <Container>
@@ -46,10 +46,7 @@ class NavBar extends Component {
           )}
 
           {authenticated ? (
-            <SignedInMenu
-              signOut={this.handleSignOut}
-              currentUser={auth.currentUser}
-            />
+            <SignedInMenu signOut={this.handleSignOut} profile={profile} />
           ) : (
             <SignedOutMenu
               signIn={this.handleSignIn}
@@ -63,17 +60,19 @@ class NavBar extends Component {
 }
 
 const mapDispatchToProps = {
-  openModal,
-  logout
+  openModal
 };
 
 const mapStateToProps = state => ({
-  auth: state.auth
+  auth: state.firebase.auth,
+  profile: state.firebase.profile
 });
 
 export default withRouter(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps
-  )(NavBar)
+  withFirebase(
+    connect(
+      mapStateToProps,
+      mapDispatchToProps
+    )(NavBar)
+  )
 );
