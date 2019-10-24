@@ -6,57 +6,54 @@ import EventDetailedInfo from './EventDetailedInfo';
 import EventDetailedChat from './EventDetailedChat';
 import EventDetailedSidebar from './EventDetailedSidebar';
 import { connect } from 'react-redux';
+import { withFirestore } from 'react-redux-firebase';
+import { toastr } from 'react-redux-toastr';
+import { objectToArray } from '../../../app/common/util/helpers';
 
-// const event = {
-//   id: '1',
-//   title: 'Trip to Tower of London',
-//   date: '2018-03-27',
-//   category: 'culture',
-//   description:
-//     'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus sollicitudin ligula eu leo tincidunt, quis scelerisque magna dapibus. Sed eget ipsum vel arcu vehicula ullamcorper.',
-//   city: 'London, UK',
-//   venue: "Tower of London, St Katharine's & Wapping, London",
-//   hostedBy: 'Bob',
-//   hostPhotoURL: 'https://randomuser.me/api/portraits/men/20.jpg',
-//   attendees: [
-//     {
-//       id: 'a',
-//       name: 'Bob',
-//       photoURL: 'https://randomuser.me/api/portraits/men/20.jpg'
-//     },
-//     {
-//       id: 'b',
-//       name: 'Tom',
-//       photoURL: 'https://randomuser.me/api/portraits/men/22.jpg'
-//     }
-//   ]
-// };
+class EventDetailedPage extends React.Component {
+  async componentDidMount() {
+    const { firestore, match, history } = this.props;
+    let event = await firestore.get(`events/${match.params.id}`);
+    if (!event.exists) {
+      history.push('/events');
+      toastr.error('Sorry', 'Event not found');
+    }
+  }
 
-const EventDetailedPage = ({ event }) => {
-  return (
-    <Grid>
-      <Grid.Column width={10}>
-        <EventDetailedHeader event={event} />
-        <EventDetailedInfo event={event} />
-        <EventDetailedChat />
-      </Grid.Column>
-      <Grid.Column width={6}>
-        <EventDetailedSidebar attendees={event.attendees} />
-      </Grid.Column>
-    </Grid>
-  );
-};
+  render() {
+    const { event } = this.props;
+    const attendees =
+      event && event.attendees && objectToArray(event.attendees);
+    return (
+      <Grid>
+        <Grid.Column width={10}>
+          <EventDetailedHeader event={event} />
+          <EventDetailedInfo event={event} />
+          <EventDetailedChat />
+        </Grid.Column>
+        <Grid.Column width={6}>
+          <EventDetailedSidebar attendees={attendees} />
+        </Grid.Column>
+      </Grid>
+    );
+  }
+}
 
 const mapStateToProps = (state, ownProps) => {
   const eventId = ownProps.match.params.id;
 
   let event = {};
-  if (eventId && state.events.length > 0) {
-    event = state.events.filter(event => event.id === eventId)[0];
+  if (
+    state.firestore.ordered.events &&
+    state.firestore.ordered.events.length > 0
+  ) {
+    event =
+      state.firestore.ordered.events.filter(event => event.id === eventId)[0] ||
+      {};
   }
   return {
     event
   };
 };
 
-export default connect(mapStateToProps)(EventDetailedPage);
+export default withFirestore(connect(mapStateToProps)(EventDetailedPage));
