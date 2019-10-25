@@ -1,10 +1,3 @@
-import { UPDATE_EVENT, DELETE_EVENT, FETCH_EVENTS } from './eventConstants';
-import {
-  asyncActionStart,
-  asyncActionFinish,
-  asyncActionError
-} from '../async/asyncActions';
-import { fetchSampleData } from '../../app/data/mockApi';
 import { toastr } from 'react-redux-toastr';
 import { createNewEvent } from '../../app/common/util/helpers';
 
@@ -12,11 +5,9 @@ export const createEvent = event => {
   return async (getState, { getFirestore, getFirebase }) => {
     const firestore = getFirestore();
     const firebase = getFirebase();
-    // const user = firestore.auth().currentUser;
     const user = firebase.auth().currentUser;
     const photoURL = getState().firebase.profile.photoURL;
-    // add additional data in addition toi teg form corrds
-    const newEvent = createNewEvent(user, photoURL, event);
+    const newEvent = createNewEvent(user, photoURL, event, firestore);
     try {
       let createdEvent = await firestore.add('events', newEvent);
       await firestore.set(`event_attendee/${createdEvent.id}_${user.uid}`, {
@@ -28,46 +19,40 @@ export const createEvent = event => {
       toastr.success('Success!', 'Event has been created');
       return createdEvent;
     } catch (error) {
-      toastr.error('Ooops!', 'Something went wrong');
+      toastr.error('Oops', 'Something went wrong');
     }
   };
 };
 
 export const updateEvent = event => {
-  return async dispatch => {
+  return async (dispatch, getState, { getFirestore }) => {
+    const firestore = getFirestore();
     try {
-      dispatch({
-        type: UPDATE_EVENT,
-        payload: {
-          event
-        }
-      });
+      await firestore.update(`events/${event.id}`, event);
       toastr.success('Success!', 'Event has been updated');
     } catch (error) {
-      toastr.error('Ooops!', 'Something went wrong');
+      toastr.error('Oops', 'Something went wrong');
     }
   };
 };
 
-export const deleteEvent = eventId => {
-  return {
-    type: DELETE_EVENT,
-    payload: {
-      eventId
-    }
-  };
-};
-
-export const loadEvents = () => {
-  return async dispatch => {
-    try {
-      dispatch(asyncActionStart());
-      const events = await fetchSampleData();
-      dispatch({ type: FETCH_EVENTS, payload: { events } });
-      dispatch(asyncActionFinish());
-    } catch (error) {
-      console.log(error);
-      dispatch(asyncActionError());
-    }
-  };
+export const cancelToggle = (cancelled, eventId) => async (
+  dispatch,
+  getState,
+  { getFirestore }
+) => {
+  const firestore = getFirestore();
+  const message = cancelled
+    ? 'Are you sure you want to cancel the event?'
+    : 'This will reactivate the event, are you sure?';
+  try {
+    toastr.confirm(message, {
+      onOk: async () =>
+        await firestore.update(`events/${eventId}`, {
+          cancelled: cancelled
+        })
+    });
+  } catch (error) {
+    console.log(error);
+  }
 };
