@@ -2,7 +2,7 @@ import { toastr } from 'react-redux-toastr';
 import { createNewEvent } from '../../app/common/util/helpers';
 
 export const createEvent = event => {
-  return async (getState, { getFirestore, getFirebase }) => {
+  return async (dispatch, getState, { getFirestore, getFirebase }) => {
     const firestore = getFirestore();
     const firebase = getFirebase();
     const user = firebase.auth().currentUser;
