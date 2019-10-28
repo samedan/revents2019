@@ -85,9 +85,23 @@ export const getEventsForDashboard = lastEvent => async (
         .get());
     let query;
 
-    let querySnap = await eventsQuery.get();
-    // console.log(querySnap);
-    // loop through the snapshot and search through the data
+    lastEvent
+      ? (query = eventsRef
+          // .where('date', '>=', today)
+          .orderBy('date')
+          .startAfter(startAfter)
+          .limit(2))
+      : (query = eventsRef
+          // .where('date', '>=', today)
+          .orderBy('date')
+          .limit(2));
+
+    let querySnap = await query.get();
+    if (querySnap.docs.length === 0) {
+      dispatch(asyncActionFinish());
+      return querySnap;
+    }
+
     let events = [];
     for (let i = 0; i < querySnap.docs.length; i++) {
       // 'data()' retrives all the fields in the doc as objects
@@ -101,7 +115,7 @@ export const getEventsForDashboard = lastEvent => async (
     }
     dispatch({ type: FETCH_EVENTS, payload: { events } });
     dispatch(asyncActionFinish());
-    // console.log(events);
+    return querySnap;
   } catch (error) {
     console.log(error);
     dispatch(asyncActionError());
