@@ -1,5 +1,12 @@
 import { toastr } from 'react-redux-toastr';
 import { createNewEvent } from '../../app/common/util/helpers';
+import firebase from '../../app/config/firebase';
+import { FETCH_EVENTS } from './eventConstants';
+import {
+  asyncActionStart,
+  asyncActionFinish,
+  asyncActionError
+} from '../async/asyncActions';
 
 export const createEvent = event => {
   return async (dispatch, getState, { getFirestore, getFirebase }) => {
@@ -54,5 +61,49 @@ export const cancelToggle = (cancelled, eventId) => async (
     });
   } catch (error) {
     console.log(error);
+  }
+};
+
+export const getEventsForDashboard = lastEvent => async (
+  dispatch,
+  getState
+) => {
+  let today = new Date();
+  const firestore = firebase.firestore();
+  // get events in teh future
+  // const eventsQuery = firestore.collection('events').where('date', '>=', today);
+
+  const eventsRef = firestore.collection('events');
+
+  try {
+    dispatch(asyncActionStart());
+    let startAfter =
+      lastEvent &&
+      (await firestore
+        .collection('events')
+        .doc(lastEvent.id)
+        .get());
+    let query;
+
+    let querySnap = await eventsQuery.get();
+    // console.log(querySnap);
+    // loop through the snapshot and search through the data
+    let events = [];
+    for (let i = 0; i < querySnap.docs.length; i++) {
+      // 'data()' retrives all the fields in the doc as objects
+      let evt = {
+        ...querySnap.docs[i].data(),
+        // populate the
+        id: querySnap.docs[i].id
+      };
+
+      events.push(evt);
+    }
+    dispatch({ type: FETCH_EVENTS, payload: { events } });
+    dispatch(asyncActionFinish());
+    // console.log(events);
+  } catch (error) {
+    console.log(error);
+    dispatch(asyncActionError());
   }
 };
