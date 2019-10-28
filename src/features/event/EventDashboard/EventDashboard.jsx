@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Grid, Button } from 'semantic-ui-react';
+import { Grid, Button, Loader } from 'semantic-ui-react';
 import EventList from '../EventList/EventList';
 import { connect } from 'react-redux';
 import { getEventsForDashboard } from '../eventActions';
@@ -50,6 +50,8 @@ class EventDashboard extends Component {
 
   render() {
     const { loading } = this.props;
+    const { moreEvents, loadedEvents } = this.state;
+
     if (this.state.loadingInitial)
       return (
         <Grid>
@@ -64,18 +66,26 @@ class EventDashboard extends Component {
     return (
       <Grid>
         <Grid.Column width={10}>
-          <EventList events={this.state.loadedEvents} />
-          <Button
+          <EventList
+            loading={loading}
+            events={loadedEvents}
+            moreEvents={moreEvents}
+            getNextEvents={this.getNextEvents}
+          />
+          {/* <Button
             loading={loading}
             content="More"
             color="green"
             floated="right"
             onClick={this.getNextEvents}
             disabled={!this.state.moreEvents}
-          />
+          /> */}
         </Grid.Column>
         <Grid.Column width={6}>
           <EventActivity />
+        </Grid.Column>
+        <Grid.Column width={10}>
+          <Loader active={loading} />
         </Grid.Column>
       </Grid>
     );

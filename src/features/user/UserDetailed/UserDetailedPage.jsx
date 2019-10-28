@@ -1,25 +1,44 @@
 import React, { Component } from 'react';
-import { Card, Grid, Header, Image, Menu, Segment } from 'semantic-ui-react';
+import { Grid } from 'semantic-ui-react';
 import { connect } from 'react-redux';
 import { compose } from 'redux';
 import UserDetailedHeader from './UserDetailedHeader';
 import UserDetailedDescription from './UserDetailedDescription';
 import UserDetailedPhotos from './UserDetailedPhotos';
+import UserDetailedEvents from './UserDetailedEvents';
 import { firestoreConnect, isEmpty } from 'react-redux-firebase';
 import { userDetailedQuery } from '../userQueries';
 import UserDetailedSidebar from './UserDetailedSidebar';
 import LoadingComponent from '../../../app/layout/LoadingComponent';
+import { getUserEvents } from '../userActions';
 
 // console.log(query); // returns the array of photos
 
 class UserDetailedPage extends Component {
+  async componentDidMount() {
+    let events = await this.props.getUserEvents(this.props.userUid);
+    console.log(events);
+  }
+
+  changeTab = (e, data) => {
+    this.props.getUserEvents(this.props.userUid, data.activeIndex);
+  };
+
   render() {
-    const { profile, photos, auth, match, requesting } = this.props;
+    const {
+      profile,
+      photos,
+      auth,
+      match,
+      requesting,
+      events,
+      eventsLoading
+    } = this.props;
     const isCurrentUser = auth.uid === match.params.id; // boolean
     const loading = Object.values(requesting)
       // if any values in firestore/status/requesting is 'true'
       .some(a => a === true);
-    if (loading) return <LoadingComponent />;
+    if (loading) return <LoadingComponent inverted={true} />;
 
     return (
       <Grid>
@@ -29,39 +48,11 @@ class UserDetailedPage extends Component {
 
         {photos && photos.length > 0 && <UserDetailedPhotos photos={photos} />}
 
-        <Grid.Column width={12}>
-          <Segment attached>
-            <Header icon="calendar" content="Events" />
-            <Menu secondary pointing>
-              <Menu.Item name="All Events" active />
-              <Menu.Item name="Past Events" />
-              <Menu.Item name="Future Events" />
-              <Menu.Item name="Events Hosted" />
-            </Menu>
-
-            <Card.Group itemsPerRow={5}>
-              <Card>
-                <Image src={'/assets/categoryImages/drinks.jpg'} />
-                <Card.Content>
-                  <Card.Header textAlign="center">Event Title</Card.Header>
-                  <Card.Meta textAlign="center">
-                    28th March 2018 at 10:00 PM
-                  </Card.Meta>
-                </Card.Content>
-              </Card>
-
-              <Card>
-                <Image src={'/assets/categoryImages/drinks.jpg'} />
-                <Card.Content>
-                  <Card.Header textAlign="center">Event Title</Card.Header>
-                  <Card.Meta textAlign="center">
-                    28th March 2018 at 10:00 PM
-                  </Card.Meta>
-                </Card.Content>
-              </Card>
-            </Card.Group>
-          </Segment>
-        </Grid.Column>
+        <UserDetailedEvents
+          changeTab={this.changeTab}
+          events={events}
+          eventsLoading={eventsLoading}
+        />
       </Grid>
     );
   }
@@ -84,12 +75,21 @@ const mapStateToProps = (state, ownProps) => {
     auth: state.firebase.auth,
     profile,
     userUid,
+    events: state.events,
+    eventsLoading: state.async.loading,
     photos: state.firestore.ordered.photos,
     requesting: state.firestore.status.requesting // sort of loading...
   };
 };
 
+const mapDispatchToProps = {
+  getUserEvents
+};
+
 export default compose(
-  connect(mapStateToProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps
+  ),
   firestoreConnect((auth, userUid) => userDetailedQuery(auth, userUid))
 )(UserDetailedPage);
