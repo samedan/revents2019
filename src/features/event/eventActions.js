@@ -66,14 +66,15 @@ export const updateEvent = event => {
           batch.update(eventAttendeeDocRef, {
             eventDate: event.date
           });
-          await batch.commit();
         }
+        await batch.commit();
       } else {
         await eventDocRef.update(event);
       }
       dispatch(asyncActionFinish());
       toastr.success('Success!', 'Event has been updated');
     } catch (error) {
+      console.log(error);
       dispatch(asyncActionError());
       toastr.error('Oops', 'Something went wrong');
     }

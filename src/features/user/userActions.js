@@ -150,14 +150,14 @@ export const goingToEvent = event => async (dispatch, getState) => {
   const photoURL = getState().firebase.profile.photoURL;
   const attendee = {
     going: true,
-    joinDate: Date.now(),
+    joinDate: Date.now(), // new Date() || Date.now()
     photoURL: photoURL || '/assets/user.png',
     displayName: user.displayName,
     host: false
   };
   try {
     let eventDocRef = firestore.collection('events').doc(event.id);
-    let eventAttendeeRef = firestore
+    let eventAttendeeDocRef = firestore
       .collection('event_attendee')
       .doc(`${event.id}_${user.uid}`);
 
@@ -167,7 +167,7 @@ export const goingToEvent = event => async (dispatch, getState) => {
       await transaction.update(eventDocRef, {
         [`attendees.${user.uid}`]: attendee
       });
-      await transaction.set(eventAttendeeRef, {
+      await transaction.set(eventAttendeeDocRef, {
         eventId: event.id,
         userUid: user.uid,
         eventDate: event.date,
@@ -201,6 +201,7 @@ export const cancelGoingToEvent = event => async (
     await firestore.delete(`event_attendee/${event.id}_${user.uid}`);
     toastr.success('Success', 'You have removed yourself from the event');
   } catch (error) {
+    console.log(error);
     toastr.error('Oops', 'Somenthing went wrong');
   }
 };
