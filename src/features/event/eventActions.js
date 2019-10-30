@@ -31,13 +31,50 @@ export const createEvent = event => {
   };
 };
 
+// UPDATE EVENT
 export const updateEvent = event => {
-  return async (dispatch, getState, { getFirestore }) => {
-    const firestore = getFirestore();
+  return async (dispatch, getState) => {
+    const firestore = firebase.firestore();
     try {
-      await firestore.update(`events/${event.id}`, event);
+      dispatch(asyncActionStart());
+      let eventDocRef = firestore.collection('events').doc(event.id);
+
+      // test id dates are different true/false
+      let dateEqual = getState()
+        //Timestamp {seconds: 1572534000, nanoseconds: 0}
+        .firestore.ordered.events[0].date.isEqual(
+          // with the date stored Sat Nov 02 2019 15:30:00 GMT+0100 (Central European Standard Time)
+          event.date
+        );
+      if (!dateEqual) {
+        let batch = firestore.batch();
+        batch.update(eventDocRef, event);
+
+        let eventAttendeeRef = firestore.collection('event_attendee');
+        // we get all the attendee docs
+        let eventAttendeeQuery = await eventAttendeeRef.where(
+          'eventId',
+          '==',
+          event.id
+        );
+        let eventAttendeeQuerySnap = await eventAttendeeQuery.get();
+
+        for (let i = 0; i < eventAttendeeQuerySnap.docs.length; i++) {
+          let eventAttendeeDocRef = await firestore
+            .collection('event_attendee')
+            .doc(eventAttendeeQuerySnap.docs[i].id);
+          batch.update(eventAttendeeDocRef, {
+            eventDate: event.date
+          });
+          await batch.commit();
+        }
+      } else {
+        await eventDocRef.update(event);
+      }
+      dispatch(asyncActionFinish());
       toastr.success('Success!', 'Event has been updated');
     } catch (error) {
+      dispatch(asyncActionError());
       toastr.error('Oops', 'Something went wrong');
     }
   };
