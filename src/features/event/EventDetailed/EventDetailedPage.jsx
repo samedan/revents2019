@@ -14,6 +14,7 @@ import {
 import { goingToEvent, cancelGoingToEvent } from '../../user/userActions';
 import { compose } from 'redux';
 import { addEventComment } from '../../event/eventActions';
+import { openModal } from '../../modals/modalActions';
 
 class EventDetailedPage extends React.Component {
   async componentDidMount() {
@@ -34,7 +35,8 @@ class EventDetailedPage extends React.Component {
       cancelGoingToEvent,
       addEventComment,
       eventChat,
-      loading
+      loading,
+      openModal
     } = this.props;
     const attendees =
       event && event.attendees && objectToArray(event.attendees);
@@ -44,6 +46,7 @@ class EventDetailedPage extends React.Component {
       // check if the host is going, 'some()' better for Objects
       attendees.some(a => a.id === auth.uid);
     const chatTree = !isEmpty(eventChat) && createDataTree(eventChat);
+    const authenticated = auth.isLoaded && !auth.isEmpty;
     return (
       <Grid>
         <Grid.Column width={10}>
@@ -54,13 +57,17 @@ class EventDetailedPage extends React.Component {
             isHost={isHost}
             goingToEvent={goingToEvent}
             cancelGoingToEvent={cancelGoingToEvent}
+            authenticated={authenticated}
+            openModal={openModal}
           />
           <EventDetailedInfo event={event} />
-          <EventDetailedChat
-            addEventComment={addEventComment}
-            eventId={event.id}
-            eventChat={chatTree}
-          />
+          {authenticated && (
+            <EventDetailedChat
+              addEventComment={addEventComment}
+              eventId={event.id}
+              eventChat={chatTree}
+            />
+          )}
         </Grid.Column>
         <Grid.Column width={6}>
           <EventDetailedSidebar attendees={attendees} />
@@ -73,7 +80,8 @@ class EventDetailedPage extends React.Component {
 const mapDispatchToProps = {
   goingToEvent,
   cancelGoingToEvent,
-  addEventComment
+  addEventComment,
+  openModal
 };
 
 const mapStateToProps = (state, ownProps) => {
