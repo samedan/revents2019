@@ -6,7 +6,7 @@ import { login, socialLogin } from '../authActions';
 import { connect } from 'react-redux';
 import SocialLogin from '../socialLogin/SocialLogin';
 
-const LoginForm = ({ login, socialLogin, handleSubmit, error }) => {
+const LoginForm = ({ login, socialLogin, handleSubmit, error, submitting }) => {
   return (
     <Form size="large" onSubmit={handleSubmit(login)} autoComplete="off">
       <Segment>
@@ -27,7 +27,7 @@ const LoginForm = ({ login, socialLogin, handleSubmit, error }) => {
             {error}
           </Label>
         )}
-        <Button fluid size="large" color="teal">
+        <Button loading={submitting} fluid size="large" color="teal">
           Login
         </Button>
         <Divider horizontal>Or</Divider>

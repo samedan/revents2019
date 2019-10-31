@@ -69,6 +69,7 @@ class EventDashboard extends Component {
           </Grid.Column>
         </Grid>
       );
+
     return (
       <Grid>
         <Grid.Column width={10}>
@@ -102,7 +103,7 @@ class EventDashboard extends Component {
 }
 
 const mapStateToProps = state => ({
-  events: state.events,
+  events: state.events.events,
   loading: state.async.loading,
   activities: state.firestore.ordered.activity
 });

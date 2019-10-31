@@ -13,6 +13,7 @@ import SettingsDashboard from '../../features/user/Settings/SettingsDashboard';
 import TestComponent from '../../features/testarea/TestComponent';
 import ModalManager from '../../features/modals/ModalManager';
 import { UserIsAuthenticated } from '../../features/auth/authWrapper';
+import NotFound from './NotFound';
 
 class App extends Component {
   render() {
@@ -47,6 +48,7 @@ class App extends Component {
                     path={['/createEvent', '/manage/:id']}
                     component={UserIsAuthenticated(EventForm)}
                   />
+                  <Route component={NotFound} />
                 </Switch>
               </Container>
             </Fragment>

@@ -1,7 +1,7 @@
 // rafc
 
 import React, { Fragment } from 'react';
-import { Segment, Image, Header, Button, Item } from 'semantic-ui-react';
+import { Segment, Image, Header, Button, Item, Label } from 'semantic-ui-react';
 import { Link } from 'react-router-dom';
 import { format } from 'date-fns';
 // import { openModal } from '../../modals/modalActions';
@@ -66,14 +66,21 @@ const EventDetailedHeader = ({
       </Segment>
 
       <Segment attached="bottom" clearing>
+        {event.cancelled && (
+          <Label
+            size="large"
+            color="red"
+            content="This event has been cancelled"
+          />
+        )}
         {!isHost && (
           <Fragment>
-            {isGoing && (
+            {isGoing && !event.cancelled && (
               <Button onClick={() => cancelGoingToEvent(event)}>
                 Cancel My Place
               </Button>
             )}
-            {!isGoing && authenticated && (
+            {!isGoing && authenticated && !event.cancelled && (
               <Button
                 color="teal"
                 loading={loading}
@@ -82,7 +89,7 @@ const EventDetailedHeader = ({
                 JOIN THIS EVENT
               </Button>
             )}
-            {!authenticated && (
+            {!authenticated && !event.cancelled && (
               <Button
                 color="teal"
                 loading={loading}
