@@ -10,7 +10,7 @@ import { firestoreConnect, isEmpty } from 'react-redux-firebase';
 import { userDetailedQuery } from '../userQueries';
 import UserDetailedSidebar from './UserDetailedSidebar';
 import LoadingComponent from '../../../app/layout/LoadingComponent';
-import { getUserEvents } from '../userActions';
+import { getUserEvents, followUser, unfollowUser } from '../userActions';
 
 // console.log(query); // returns the array of photos
 
@@ -32,9 +32,19 @@ class UserDetailedPage extends Component {
       match,
       requesting,
       events,
-      eventsLoading
+      eventsLoading,
+      followUser,
+      following,
+      unfollowUser
     } = this.props;
     const isCurrentUser = auth.uid === match.params.id; // boolean
+
+    const isFollowing = !isEmpty(following);
+    console.log('following');
+    console.log(following);
+    console.log('isFollowing');
+    console.log(isFollowing);
+
     const loading = Object.values(requesting)
       // if any values in firestore/status/requesting is 'true'
       .some(a => a === true);
@@ -44,7 +54,13 @@ class UserDetailedPage extends Component {
       <Grid>
         <UserDetailedHeader profile={profile} />
         <UserDetailedDescription profile={profile} />
-        <UserDetailedSidebar isCurrentUser={isCurrentUser} />
+        <UserDetailedSidebar
+          followUser={followUser}
+          isFollowing={isFollowing}
+          profile={profile}
+          isCurrentUser={isCurrentUser}
+          unfollowUser={unfollowUser}
+        />
 
         {photos && photos.length > 0 && <UserDetailedPhotos photos={photos} />}
 
@@ -78,12 +94,15 @@ const mapStateToProps = (state, ownProps) => {
     events: state.events.userEvents,
     eventsLoading: state.async.loading,
     photos: state.firestore.ordered.photos,
-    requesting: state.firestore.status.requesting // sort of loading...
+    requesting: state.firestore.status.requesting, // sort of loading...
+    following: state.firestore.ordered.following
   };
 };
 
 const mapDispatchToProps = {
-  getUserEvents
+  getUserEvents,
+  followUser,
+  unfollowUser
 };
 
 export default compose(
@@ -91,5 +110,7 @@ export default compose(
     mapStateToProps,
     mapDispatchToProps
   ),
-  firestoreConnect((auth, userUid) => userDetailedQuery(auth, userUid))
+  firestoreConnect((auth, userUid, match) =>
+    userDetailedQuery(auth, userUid, match)
+  )
 )(UserDetailedPage);

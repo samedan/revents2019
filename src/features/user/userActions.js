@@ -202,7 +202,7 @@ export const cancelGoingToEvent = event => async (
     toastr.success('Success', 'You have removed yourself from the event');
   } catch (error) {
     console.log(error);
-    toastr.error('Oops', 'Somenthing went wrong');
+    toastr.error('Oops', 'Something went wrong');
   }
 };
 
@@ -260,5 +260,51 @@ export const getUserEvents = (userUid, activeTab) => async (
   } catch (error) {
     console.log(error);
     dispatch(asyncActionError());
+  }
+};
+
+// FOLLOW User
+export const followUser = userToFollow => async (
+  dispatch,
+  getState,
+  { getFirestore }
+) => {
+  const firestore = getFirestore();
+  const user = firestore.auth().currentUser;
+  const following = {
+    photoURL: userToFollow.photoURL || '/assets/user.png',
+    city: userToFollow.city || 'Unknown city',
+    displayName: userToFollow.displayName
+  };
+  try {
+    await firestore.set(
+      {
+        collection: 'users',
+        doc: user.uid,
+        subcollections: [{ collection: 'following', doc: userToFollow.id }]
+      },
+      following
+    );
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+// Un-Follow user
+export const unfollowUser = userToUnfollow => async (
+  dispatch,
+  getstate,
+  { getFirestore }
+) => {
+  const firestore = getFirestore();
+  const user = firestore.auth().currentUser;
+  try {
+    await firestore.delete({
+      collection: 'users',
+      doc: user.uid,
+      subcollections: [{ collection: 'following', doc: userToUnfollow.id }]
+    });
+  } catch (error) {
+    console.log(error);
   }
 };
